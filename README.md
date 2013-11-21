@@ -6,4 +6,4 @@ METARG
 Intended usage:
 `metarg KORD`  
 
-Will add the -d, -v flags as time and enthusiasm dictates.
+Will add the -d, -v flags as time and enthusiasm dictate.
