@@ -21,16 +21,25 @@ func TestParseDayTime(t *testing.T) {
 }
 
 func TestParseWind(t *testing.T) {
-	const testWind = "15007KT"
+	const testWind = "18055KT"
 	direction, wind := ParseWind(testWind)
 	t.Logf("Received %v, %v", direction, wind)
-	if direction != 150 {
+	if direction != 180 {
 		t.Error("Direction not correct")
 	}
-	if wind != 7.0 {
+	if wind != 55 {
 		t.Error("Wind not correct")
 	}
 	t.Log("OK")
+}
+
+func TestParseVisibilityFraction(t *testing.T) {
+	const testVisibility = "1/2SM"
+	distance := ParseVisibility(testVisibility)
+	t.Logf("Received %v ", distance)
+	if distance != "1/2" {
+		t.Error("Visiblity not correct")
+	}
 }
 
 func TestParseFullMetar(t *testing.T) {
@@ -43,6 +52,15 @@ func TestParseFullMetar(t *testing.T) {
 	}
 	if metar.day != 21 {
 		t.Error("Day not correct")
+	}
+	if metar.day != 21 {
+		t.Error("Day not correct")
+	}
+	if metar.visibility != "10" {
+		t.Error("Visiblity not correct")
+	}
+	if metar.windSpeed != 7 {
+		t.Error("Wind speed not correct")
 	}
 	t.Log("OK")
 
