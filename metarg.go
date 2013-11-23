@@ -27,19 +27,20 @@ func init() {
 }
 
 type Metar struct {
-	Station, Phenomena, Visibility                       string
+	Station, Phenomena, Visibility, WindDirection        string
 	Clouds                                               []string
 	Time                                                 time.Time
-	WindSpeed, WindGust, Temperature, Dewpoint, Pressure float32
+	WindSpeed, WindGust, Temperature, Dewpoint, Pressure, WindDirectionDegree float32
 	Day                                                  int32
 }
 
-func ParseWind(windFlat string) (direction int32, speed float32) {
+func ParseWind(windFlat string) (direction string, speed float32, dirDegrees float32) {
 	regex := regexp.MustCompile(`(\d{3})(\d+)KT`)
 	match := regex.FindStringSubmatch(windFlat)
-	dir64, _ := strconv.ParseInt(match[1], 10, 32)
+	dirDegrees64, _ := strconv.ParseInt(match[1], 10, 32)
 	speed64, _ := strconv.ParseFloat(match[2], 32)
-	direction = int32(dir64)
+	dirDegrees = float32(dirDegrees64)
+	direction = GetCompassAbbreviation(dirDegrees)
 	speed = float32(speed64)
 	return
 }
@@ -115,7 +116,7 @@ func ParseMetar(flatMetar string) (metar Metar) {
 	metar.Station = match[1]
 	metar.Day, metar.Time = ParseDayTime(match[2])
 	//TODO wind direction
-	_, metar.WindSpeed = ParseWind(match[3])
+	metar.WindDirection, metar.WindSpeed, metar.WindDirectionDegree = ParseWind(match[3])
 	metar.Visibility = ParseVisibility(match[4])
 	metar.Clouds = ParseClouds(match[5])
 	metar.Temperature, metar.Dewpoint = ParseTempDew(match[6])
@@ -126,15 +127,15 @@ func ParseMetar(flatMetar string) (metar Metar) {
 func GetDetailMetar(metar Metar) (details string) {
 	const stringTemplate = `Station       : {{.Station}}
 Day           : {{.Day}}
-Time          : {{.Time}}
-Wind direction: 250 (WSW) //TODO
+Time          : {{.Time.Format "15:04"}}
+Wind direction: {{.WindDirectionDegree}} ({{.WindDirection}})
 Wind speed    : {{.WindSpeed}} KT
-Wind gust     : 4 KT //TODO
+Wind gust     : {{.WindSpeed}} KT
 Visibility    : {{.Visibility}} SM
 Temperature   : {{.Temperature}} C
 Dewpoint      : {{.Dewpoint}} C
 Pressure      : {{.Pressure}} "Hg
-Clouds        : FEW at 25000 ft //TODO
+Clouds        : {{range .Clouds}}{{.}} ft {{end}}
 Phenomena     :  //TODO`
 	tmpl, err := template.New("metarDetail").Parse(stringTemplate)
 	if err != nil { panic(err) }
@@ -171,12 +172,14 @@ func ParseArgs(arguments []string) (flag.FlagSet, bool) {
 //Returns the string and a status
 func GetMetar(station string) (value string, ok bool) {
 	station = strings.ToUpper(station)
-	resp, _ := http.Get(METAR_PATH + station + ".TXT")
+	resp, err := http.Get(METAR_PATH + station + ".TXT")
+	if err != nil {return}
 	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {return}
 	metarLine := strings.Split(string(body), "\n")[1]
 	if decode {
-		value = DecodeMetar(metarLine)
+		value = fmt.Sprintf("%s\n%s", metarLine, DecodeMetar(metarLine))
 	} else {
 		value = metarLine
 	}
@@ -190,8 +193,13 @@ func main() {
 			fmt.Print("Usage: metarg [options] station\n")
 
 		} else {
-			metar, _ := GetMetar(args.Args()[0])
-			fmt.Print(metar)
+			metar, success := GetMetar(args.Args()[0])
+			if success {
+				fmt.Print(metar, "\n")
+
+			}else {
+				fmt.Print("Oh no, something went wrong!")
+			}
 		}
 	}
 }

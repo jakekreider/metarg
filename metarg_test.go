@@ -22,10 +22,13 @@ func TestParseDayTime(t *testing.T) {
 
 func TestParseWind(t *testing.T) {
 	const testWind = "18055KT"
-	direction, wind := ParseWind(testWind)
+	direction, wind, degrees := ParseWind(testWind)
 	t.Logf("Received %v, %v", direction, wind)
-	if direction != 180 {
+	if direction != "S" {
 		t.Error("Direction not correct")
+	}
+	if degrees != 180 {
+		t.Error("Degrees not correct")
 	}
 	if wind != 55 {
 		t.Error("Wind not correct")
@@ -104,6 +107,7 @@ func TestParseFullMetar(t *testing.T) {
 		t.Error("Wind speed not correct")
 	}
 	details := GetDetailMetar(metar)
+	t.Logf("Details: %v", details)
 	if details == "" {
 		t.Error("Details failed to parse")
 	}
