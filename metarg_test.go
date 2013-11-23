@@ -40,6 +40,27 @@ func TestParseVisibilityFraction(t *testing.T) {
 	if distance != "1/2" {
 		t.Error("Visiblity not correct")
 	}
+	t.Log("OK")
+}
+
+func TestParseCloudsMultiple(t *testing.T) {
+	const testClouds = "FEW200 SCT250"
+	clouds := ParseClouds(testClouds)
+	t.Logf("Received %v ", clouds)
+	if len(clouds) != 2 {
+		t.Error("Received wrong count of clouds")
+	}
+	t.Log("OK")
+}
+
+func TestParseCloudItem(t *testing.T) {
+	const testCloud = "FEW200"
+	cloud := ParseCloudDescription(testCloud)
+	t.Logf("Received %v ", cloud)
+	if cloud != "FEW at 20000" {
+		t.Error("Received wrong cloud value")
+	}
+	t.Log("OK")
 }
 
 func TestParseFullMetar(t *testing.T) {

@@ -25,7 +25,8 @@ func init() {
 }
 
 type Metar struct {
-	station, clouds, phenomena, visibility               string
+	station, phenomena, visibility                       string
+	clouds                                               []string
 	time                                                 time.Time
 	windSpeed, windGust, temperature, dewPoint, pressure float32
 	day                                                  int32
@@ -61,15 +62,35 @@ func ParseDayTime(timeFlat string) (day int32, metarTime time.Time) {
 	return
 }
 
+func ParseCloudDescription(cloudFlat string) (cloud string) {
+	regex := regexp.MustCompile(`(?P<code>\D\D\D)(?P<altitude>\d\d\d)`)
+	matches := regex.FindStringSubmatch(cloudFlat)[1:]
+	alt64, _ := strconv.ParseInt(matches[1], 10, 64)
+	cloud = fmt.Sprintf("%v at %v", matches[0], alt64 * 100)
+	return
+
+}
+
+func ParseClouds(cloudFlat string) (clouds []string) {
+	regex := regexp.MustCompile(`\D\D\D\d\d\d`)
+	matches := regex.FindAllString(cloudFlat, -1)
+	for _, match := range matches {
+		clouds = append(clouds, ParseCloudDescription(match))
+	}
+	return
+}
+
 func ParseMetar(flatMetar string) (metar Metar) {
-	regex := regexp.MustCompile(`^(?P<station>\w{4})\s(?P<time>\w{7})\s(?P<wind>\w+)\s(?P<visibility>\w+)\s.*`)
+	regex := regexp.MustCompile(
+		`^(?P<station>\w{4})\s(?P<time>\w{7})\s(?P<wind>\w+)\s(?P<visibility>\w+)\s+(?P<clouds>.*)\s(?P<tempdue>M?\d\d\/M?\d\d)\s.*`)
 	match := regex.FindStringSubmatch(flatMetar)
 	metar.station = match[1]
 	metar.day, metar.time = ParseDayTime(match[2])
 	//TODO wind direction
 	_, metar.windSpeed = ParseWind(match[3])
 	metar.visibility = ParseVisibility(match[4])
-	return metar
+	metar.clouds = ParseClouds(match[5])
+	return
 }
 
 //Parse command-line args
