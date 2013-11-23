@@ -91,7 +91,7 @@ func TestParsePressure(t *testing.T) {
 
 func TestParseFullMetar(t *testing.T) {
 	const testMetar = "KORD 210051Z 15007KT 10SM OVC060 05/01 A3010 RMK AO2 RAE02 SLP200 P0000 T00500011"
-	metar := ParseMetar(testMetar)
+	metar, _ := ParseMetar(testMetar)
 
 	t.Logf("Evaluating %+v ", metar)
 	if metar.Station != "KORD" {
@@ -113,5 +113,3 @@ func TestParseFullMetar(t *testing.T) {
 	}
 	t.Log("OK")
 }
-
-

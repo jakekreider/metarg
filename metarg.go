@@ -27,11 +27,11 @@ func init() {
 }
 
 type Metar struct {
-	Station, Phenomena, Visibility, WindDirection        string
-	Clouds                                               []string
-	Time                                                 time.Time
+	Station, Phenomena, Visibility, WindDirection                             string
+	Clouds                                                                    []string
+	Time                                                                      time.Time
 	WindSpeed, WindGust, Temperature, Dewpoint, Pressure, WindDirectionDegree float32
-	Day                                                  int32
+	Day                                                                       int32
 }
 
 func ParseWind(windFlat string) (direction string, speed float32, dirDegrees float32) {
@@ -69,7 +69,7 @@ func ParseCloudDescription(cloudFlat string) (cloud string) {
 	regex := regexp.MustCompile(`(?P<code>\D\D\D)(?P<altitude>\d\d\d)`)
 	matches := regex.FindStringSubmatch(cloudFlat)[1:]
 	alt64, _ := strconv.ParseInt(matches[1], 10, 64)
-	cloud = fmt.Sprintf("%v at %v", matches[0], alt64 * 100)
+	cloud = fmt.Sprintf("%v at %v", matches[0], alt64*100)
 	return
 
 }
@@ -88,8 +88,8 @@ func ParseSignedFloat(mBasedValue string) (signedFloat float32) {
 	if strings.Index(mBasedValue, "M") == 0 {
 		floatVal, _ := strconv.ParseFloat(mBasedValue[1:], 64)
 		signedFloat64 = (-floatVal)
-	}else {
-		signedFloat64, _ = strconv.ParseFloat(mBasedValue, 64)	
+	} else {
+		signedFloat64, _ = strconv.ParseFloat(mBasedValue, 64)
 	}
 	return float32(signedFloat64)
 }
@@ -105,14 +105,17 @@ func ParseTempDew(tempDueFlat string) (temperature float32, dewPoint float32) {
 func ParsePressure(pressureFlat string) (pressure float32) {
 	regex := regexp.MustCompile(`A(\d{4})`)
 	matches := regex.FindStringSubmatch(pressureFlat)[1:]
-	pressure = ParseSignedFloat(matches[0])/100
+	pressure = ParseSignedFloat(matches[0]) / 100
 	return
 }
 
-func ParseMetar(flatMetar string) (metar Metar) {
+func ParseMetar(flatMetar string) (metar Metar, success bool) {
 	regex := regexp.MustCompile(
 		`^(?P<station>\w{4})\s(?P<time>\w{7})\s(?P<wind>\w+)\s(?P<visibility>\w+)\s+(?P<clouds>.*)\s(?P<tempdue>M?\d\d\/M?\d\d)\s(?P<pressure>A\d{4})\s.*`)
 	match := regex.FindStringSubmatch(flatMetar)
+	if len(match) < 7 {
+		return metar, false
+	}
 	metar.Station = match[1]
 	metar.Day, metar.Time = ParseDayTime(match[2])
 	//TODO wind direction
@@ -121,7 +124,7 @@ func ParseMetar(flatMetar string) (metar Metar) {
 	metar.Clouds = ParseClouds(match[5])
 	metar.Temperature, metar.Dewpoint = ParseTempDew(match[6])
 	metar.Pressure = ParsePressure(match[7])
-	return
+	return metar, true
 }
 
 func GetDetailMetar(metar Metar) (details string) {
@@ -138,16 +141,23 @@ Pressure      : {{.Pressure}} "Hg
 Clouds        : {{range .Clouds}}{{.}} ft {{end}}
 Phenomena     :  //TODO`
 	tmpl, err := template.New("metarDetail").Parse(stringTemplate)
-	if err != nil { panic(err) }
-	var doc bytes.Buffer 
+	if err != nil {
+		panic(err)
+	}
+	var doc bytes.Buffer
 	err = tmpl.Execute(&doc, metar)
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 	details = doc.String()
 	return
 }
 
-func DecodeMetar(metarLine string) (details string) {
-	metar := ParseMetar(metarLine)
+func DecodeMetar(metarLine string) (details string, success bool) {
+	metar, success := ParseMetar(metarLine)
+	if !success {
+		return details, success
+	}
 	details = GetDetailMetar(metar)
 	return
 }
@@ -173,13 +183,21 @@ func ParseArgs(arguments []string) (flag.FlagSet, bool) {
 func GetMetar(station string) (value string, ok bool) {
 	station = strings.ToUpper(station)
 	resp, err := http.Get(METAR_PATH + station + ".TXT")
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {return}
+	if err != nil {
+		return
+	}
 	metarLine := strings.Split(string(body), "\n")[1]
 	if decode {
-		value = fmt.Sprintf("%s\n%s", metarLine, DecodeMetar(metarLine))
+		decodedValue, ok := DecodeMetar(metarLine)
+		if !ok {
+			return value, ok
+		}
+		value = fmt.Sprintf("%s\n%s", metarLine, decodedValue)
 	} else {
 		value = metarLine
 	}
@@ -197,8 +215,8 @@ func main() {
 			if success {
 				fmt.Print(metar, "\n")
 
-			}else {
-				fmt.Print("Oh no, something went wrong!")
+			} else {
+				fmt.Print("Oh no, something went wrong!\n")
 			}
 		}
 	}
