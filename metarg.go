@@ -80,9 +80,35 @@ func ParseClouds(cloudFlat string) (clouds []string) {
 	return
 }
 
+func ParseSignedFloat(mBasedValue string) (signedFloat float32) {
+	var signedFloat64 float64
+	if strings.Index(mBasedValue, "M") == 0 {
+		floatVal, _ := strconv.ParseFloat(mBasedValue[1:], 64)
+		signedFloat64 = (-floatVal)
+	}else {
+		signedFloat64, _ = strconv.ParseFloat(mBasedValue, 64)	
+	}
+	return float32(signedFloat64)
+}
+
+func ParseTempDew(tempDueFlat string) (temperature float32, dewPoint float32) {
+	regex := regexp.MustCompile(`(M?\d\d)\/(M?\d\d)`)
+	matches := regex.FindStringSubmatch(tempDueFlat)[1:]
+	temperature = ParseSignedFloat(matches[0])
+	dewPoint = ParseSignedFloat(matches[1])
+	return
+}
+
+func ParsePressure(pressureFlat string) (pressure float32) {
+	regex := regexp.MustCompile(`A(\d{4})`)
+	matches := regex.FindStringSubmatch(pressureFlat)[1:]
+	pressure = ParseSignedFloat(matches[0])/100
+	return
+}
+
 func ParseMetar(flatMetar string) (metar Metar) {
 	regex := regexp.MustCompile(
-		`^(?P<station>\w{4})\s(?P<time>\w{7})\s(?P<wind>\w+)\s(?P<visibility>\w+)\s+(?P<clouds>.*)\s(?P<tempdue>M?\d\d\/M?\d\d)\s.*`)
+		`^(?P<station>\w{4})\s(?P<time>\w{7})\s(?P<wind>\w+)\s(?P<visibility>\w+)\s+(?P<clouds>.*)\s(?P<tempdue>M?\d\d\/M?\d\d)\s(?P<pressure>A\d{4})\s.*`)
 	match := regex.FindStringSubmatch(flatMetar)
 	metar.station = match[1]
 	metar.day, metar.time = ParseDayTime(match[2])
@@ -90,6 +116,8 @@ func ParseMetar(flatMetar string) (metar Metar) {
 	_, metar.windSpeed = ParseWind(match[3])
 	metar.visibility = ParseVisibility(match[4])
 	metar.clouds = ParseClouds(match[5])
+	metar.temperature, metar.dewPoint = ParseTempDew(match[6])
+	metar.pressure = ParsePressure(match[7])
 	return
 }
 

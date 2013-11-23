@@ -63,6 +63,29 @@ func TestParseCloudItem(t *testing.T) {
 	t.Log("OK")
 }
 
+func TestParseTempDew(t *testing.T) {
+	const testTemp = "05/M01"
+	temperature, dewPoint := ParseTempDew(testTemp)
+	t.Logf("Received %v, %v", temperature, dewPoint)
+	if temperature != 5.0 {
+		t.Error("Received wrong temperature")
+	}
+
+	if dewPoint != -1.0 {
+		t.Error("Received wrong dew point")
+	}
+	t.Log("OK")
+}
+
+func TestParsePressure(t *testing.T) {
+	const testPressure = "A3006"
+	pressure := ParsePressure(testPressure)
+	t.Logf("Received %v", pressure)
+	if pressure != 30.06 {
+		t.Error("Received wrong pressure")
+	}
+}
+
 func TestParseFullMetar(t *testing.T) {
 	const testMetar = "KORD 210051Z 15007KT 10SM OVC060 05/01 A3010 RMK AO2 RAE02 SLP200 P0000 T00500011"
 	metar := ParseMetar(testMetar)
