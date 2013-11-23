@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"github.com/mragh/metarg/compass"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -34,14 +35,21 @@ type Metar struct {
 	Day                                                                       int32
 }
 
-func ParseWind(windFlat string) (direction string, speed float32, dirDegrees float32) {
-	regex := regexp.MustCompile(`(\d{3})(\d+)KT`)
+func ParseWind(windFlat string) (direction string, speed float32, 
+								dirDegrees float32, gust float32) {
+	regex := regexp.MustCompile(`(\d{3})(\d+)(G(\d+))?KT`)
 	match := regex.FindStringSubmatch(windFlat)
 	dirDegrees64, _ := strconv.ParseInt(match[1], 10, 32)
 	speed64, _ := strconv.ParseFloat(match[2], 32)
 	dirDegrees = float32(dirDegrees64)
-	direction = GetCompassAbbreviation(dirDegrees)
+	direction = compass.GetCompassAbbreviation(dirDegrees)
 	speed = float32(speed64)
+	if match[4] != "" {
+		gust64 , _ := strconv.ParseFloat(match[4], 32)
+		gust = float32(gust64)
+	}else{
+		gust = speed
+	}
 	return
 }
 
@@ -119,7 +127,8 @@ func ParseMetar(flatMetar string) (metar Metar, success bool) {
 	metar.Station = match[1]
 	metar.Day, metar.Time = ParseDayTime(match[2])
 	//TODO wind direction
-	metar.WindDirection, metar.WindSpeed, metar.WindDirectionDegree = ParseWind(match[3])
+	metar.WindDirection, metar.WindSpeed, 
+		metar.WindDirectionDegree, metar.WindGust = ParseWind(match[3])
 	metar.Visibility = ParseVisibility(match[4])
 	metar.Clouds = ParseClouds(match[5])
 	metar.Temperature, metar.Dewpoint = ParseTempDew(match[6])
@@ -133,7 +142,7 @@ Day           : {{.Day}}
 Time          : {{.Time.Format "15:04"}}
 Wind direction: {{.WindDirectionDegree}} ({{.WindDirection}})
 Wind speed    : {{.WindSpeed}} KT
-Wind gust     : {{.WindSpeed}} KT
+Wind gust     : {{.WindGust}} KT
 Visibility    : {{.Visibility}} SM
 Temperature   : {{.Temperature}} C
 Dewpoint      : {{.Dewpoint}} C
