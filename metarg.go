@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -9,6 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 )
 
@@ -25,11 +27,11 @@ func init() {
 }
 
 type Metar struct {
-	station, phenomena, visibility                       string
-	clouds                                               []string
-	time                                                 time.Time
-	windSpeed, windGust, temperature, dewPoint, pressure float32
-	day                                                  int32
+	Station, Phenomena, Visibility                       string
+	Clouds                                               []string
+	Time                                                 time.Time
+	WindSpeed, WindGust, Temperature, Dewpoint, Pressure float32
+	Day                                                  int32
 }
 
 func ParseWind(windFlat string) (direction int32, speed float32) {
@@ -110,14 +112,42 @@ func ParseMetar(flatMetar string) (metar Metar) {
 	regex := regexp.MustCompile(
 		`^(?P<station>\w{4})\s(?P<time>\w{7})\s(?P<wind>\w+)\s(?P<visibility>\w+)\s+(?P<clouds>.*)\s(?P<tempdue>M?\d\d\/M?\d\d)\s(?P<pressure>A\d{4})\s.*`)
 	match := regex.FindStringSubmatch(flatMetar)
-	metar.station = match[1]
-	metar.day, metar.time = ParseDayTime(match[2])
+	metar.Station = match[1]
+	metar.Day, metar.Time = ParseDayTime(match[2])
 	//TODO wind direction
-	_, metar.windSpeed = ParseWind(match[3])
-	metar.visibility = ParseVisibility(match[4])
-	metar.clouds = ParseClouds(match[5])
-	metar.temperature, metar.dewPoint = ParseTempDew(match[6])
-	metar.pressure = ParsePressure(match[7])
+	_, metar.WindSpeed = ParseWind(match[3])
+	metar.Visibility = ParseVisibility(match[4])
+	metar.Clouds = ParseClouds(match[5])
+	metar.Temperature, metar.Dewpoint = ParseTempDew(match[6])
+	metar.Pressure = ParsePressure(match[7])
+	return
+}
+
+func GetDetailMetar(metar Metar) (details string) {
+	const stringTemplate = `Station       : {{.Station}}
+Day           : {{.Day}}
+Time          : {{.Time}}
+Wind direction: 250 (WSW) //TODO
+Wind speed    : {{.WindSpeed}} KT
+Wind gust     : 4 KT //TODO
+Visibility    : {{.Visibility}} SM
+Temperature   : {{.Temperature}} C
+Dewpoint      : {{.Dewpoint}} C
+Pressure      : {{.Pressure}} "Hg
+Clouds        : FEW at 25000 ft //TODO
+Phenomena     :  //TODO`
+	tmpl, err := template.New("metarDetail").Parse(stringTemplate)
+	if err != nil { panic(err) }
+	var doc bytes.Buffer 
+	err = tmpl.Execute(&doc, metar)
+	if err != nil { panic(err) }
+	details = doc.String()
+	return
+}
+
+func DecodeMetar(metarLine string) (details string) {
+	metar := ParseMetar(metarLine)
+	details = GetDetailMetar(metar)
 	return
 }
 
@@ -129,7 +159,7 @@ func ParseArgs(arguments []string) (flag.FlagSet, bool) {
 		flag.PrintDefaults()
 		success = false
 	}
-	if decode || verbose {
+	if verbose {
 		fmt.Print("Shh, not implemented yet ...")
 		success = false
 	}
@@ -144,7 +174,13 @@ func GetMetar(station string) (value string, ok bool) {
 	resp, _ := http.Get(METAR_PATH + station + ".TXT")
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
-	return string(body), false
+	metarLine := strings.Split(string(body), "\n")[1]
+	if decode {
+		value = DecodeMetar(metarLine)
+	} else {
+		value = metarLine
+	}
+	return value, true
 }
 
 func main() {

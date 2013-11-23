@@ -91,21 +91,23 @@ func TestParseFullMetar(t *testing.T) {
 	metar := ParseMetar(testMetar)
 
 	t.Logf("Evaluating %+v ", metar)
-	if metar.station != "KORD" {
+	if metar.Station != "KORD" {
 		t.Error("Station not correct")
 	}
-	if metar.day != 21 {
+	if metar.Day != 21 {
 		t.Error("Day not correct")
 	}
-	if metar.day != 21 {
-		t.Error("Day not correct")
-	}
-	if metar.visibility != "10" {
+	if metar.Visibility != "10" {
 		t.Error("Visiblity not correct")
 	}
-	if metar.windSpeed != 7 {
+	if metar.WindSpeed != 7 {
 		t.Error("Wind speed not correct")
 	}
+	details := GetDetailMetar(metar)
+	if details == "" {
+		t.Error("Details failed to parse")
+	}
 	t.Log("OK")
-
 }
+
+
