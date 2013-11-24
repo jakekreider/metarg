@@ -14,5 +14,6 @@ TODO
 ----
   
 *  Verbosity (`-v` flag)
+*  Phenonema
 *  Multiple METAR's at a time
 *  Refactor this mess

@@ -35,10 +35,24 @@ type Metar struct {
 	Day                                                                       int32
 }
 
+type MappableRegexp struct {
+	regexp.Regexp
+}
+
+func (this *MappableRegexp) GetMap(input string) (result map[string]string){
+	result = make(map[string]string)
+	fields := this.SubexpNames()
+	matches := this.FindStringSubmatch(input)
+	for i, value := range fields[1:] {
+		result[value] = matches[i+1]
+	}
+	return
+}
+
 func ParseWind(windFlat string) (direction string, speed float32, 
 								dirDegrees float32, gust float32) {
-	regex := regexp.MustCompile(`(\d{3})(\d+)(G(\d+))?KT`)
-	match := regex.FindStringSubmatch(windFlat)
+	mapRegex := MappableRegexp{*regexp.MustCompile(`(\d{3})(\d+)(G(\d+))?KT`)}
+	match := mapRegex.FindStringSubmatch(windFlat)
 	dirDegrees64, _ := strconv.ParseInt(match[1], 10, 32)
 	speed64, _ := strconv.ParseFloat(match[2], 32)
 	dirDegrees = float32(dirDegrees64)
@@ -119,22 +133,25 @@ func ParsePressure(pressureFlat string) (pressure float32) {
 
 func ParseMetar(flatMetar string) (metar Metar, success bool) {
 	regex := regexp.MustCompile(
-		`^(?P<station>\w{4})\s(?P<time>\w{7})\s(?P<wind>\w+)\s(?P<visibility>\w+)\s+(?P<clouds>.*)\s(?P<tempdue>M?\d\d\/M?\d\d)\s(?P<pressure>A\d{4})\s.*`)
-	match := regex.FindStringSubmatch(flatMetar)
-	if len(match) < 7 {
+		`^(?P<station>\w{4})\s(?P<time>\w{7})\s(?P<wind>\w+)\s(?P<visibility>\w+)`+
+		`\s+(?P<clouds>.*)\s(?P<tempdue>M?\d\d\/M?\d\d)\s(?P<pressure>A\d{4})\s.*`)
+	mappable := MappableRegexp{*regex}
+	matches := mappable.GetMap(flatMetar)
+	if len(matches) < 7 {
 		return metar, false
 	}
-	metar.Station = match[1]
-	metar.Day, metar.Time = ParseDayTime(match[2])
-	//TODO wind direction
+	metar.Station = matches["station"]
+	metar.Day, metar.Time = ParseDayTime(matches["time"])
+
 	metar.WindDirection, metar.WindSpeed, 
-		metar.WindDirectionDegree, metar.WindGust = ParseWind(match[3])
-	metar.Visibility = ParseVisibility(match[4])
-	metar.Clouds = ParseClouds(match[5])
-	metar.Temperature, metar.Dewpoint = ParseTempDew(match[6])
-	metar.Pressure = ParsePressure(match[7])
+		metar.WindDirectionDegree, metar.WindGust = ParseWind(matches["wind"])
+	metar.Visibility = ParseVisibility(matches["visibility"])
+	metar.Clouds = ParseClouds(matches["clouds"])
+	metar.Temperature, metar.Dewpoint = ParseTempDew(matches["tempdue"])
+	metar.Pressure = ParsePressure(matches["pressure"])
 	return metar, true
 }
+
 
 func GetDetailMetar(metar Metar) (details string) {
 	const stringTemplate = `Station       : {{.Station}}
