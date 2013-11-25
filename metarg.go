@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
 	"text/template"
-	"time"
 )
+
+var Output io.Writer
 
 const METAR_PATH = "http://weather.noaa.gov/pub/data/observations/metar/stations/"
 
@@ -22,6 +24,7 @@ func init() {
 	flagSet.BoolVar(&decode, "d", false, "Decode")
 	flagSet.BoolVar(&verbose, "v", false, "Be verbose")
 	flagSet.BoolVar(&help, "h", false, "Help")
+	Output = os.Stdout
 }
 
 //Parse command-line args
@@ -33,29 +36,21 @@ func ParseArgs(arguments []string) (flag.FlagSet, bool) {
 		success = false
 	}
 	if len(flagSet.Args()) == 0 {
-		fmt.Println("Usage: metarg [options] station")
+		fmt.Fprintln(Output, "Usage: metarg [options] station")
 		success = false
 	}
 	if verbose {
-		fmt.Print("Shh, not implemented yet ...")
+		fmt.Fprintln(Output, "Shh, not implemented yet ...")
 		success = false
 	}
 
 	return *flagSet, success
 }
 
-type Metar struct {
-	Station, Phenomena, Visibility, WindDirection                             string
-	Clouds                                                                    []string
-	Time                                                                      time.Time
-	WindSpeed, WindGust, Temperature, Dewpoint, Pressure, WindDirectionDegree float32
-	Day                                                                       int32
-}
-
 func GetDetailMetar(metar Metar) (details string) {
 	const stringTemplate = `Station       : {{.Station}}
 Day           : {{.Day}}
-Time          : {{.Time.Format "15:04"}}
+Time          : {{.Time.Format "15:04"}} UTC
 Wind direction: {{.WindDirectionDegree}} ({{.WindDirection}})
 Wind speed    : {{.WindSpeed}} KT
 Wind gust     : {{.WindGust}} KT
@@ -118,10 +113,10 @@ func main() {
 	if valid {
 		metar, success := GetMetar(args.Args()[0])
 		if success {
-			fmt.Print(metar, "\n")
+			fmt.Fprint(Output, metar, "\n")
 
 		} else {
-			fmt.Print("Oh no, something went wrong!\n")
+			fmt.Fprint(Output, "Oh no, something went wrong!\n")
 		}
 	}
 }

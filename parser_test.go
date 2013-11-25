@@ -4,21 +4,43 @@ import (
 	"testing"
 )
 
+type MetarTestScenario struct {
+	RawValue string
+	ExpectedStation string
+	ExpectedDay int32
+	ExpectedVisiblity string
+	ExpectedWindSpeed float32
+}
+
+func init() {
+}
+
 func TestParseFullMetar(t *testing.T) {
-	const testMetar = "KORD 210051Z 15007KT 10SM OVC060 05/01 A3010 RMK AO2 RAE02 SLP200 P0000 T00500011"
-	metar, _ := ParseMetar(testMetar)
+	testMetar := MetarTestScenario {
+		"KORD 210051Z 15007KT 10SM OVC060 05/01 A3010 RMK AO2 RAE02 SLP200 P0000 T00500011",
+		"KORD",
+		21,
+		"10",
+		7,
+	}
+
+	checkMetarScenario(t, testMetar)
+}
+
+func checkMetarScenario(t *testing.T, testMetar MetarTestScenario){
+	metar, _ := ParseMetar(testMetar.RawValue)
 
 	t.Logf("Evaluating %+v ", metar)
-	if metar.Station != "KORD" {
+	if metar.Station != testMetar.ExpectedStation {
 		t.Error("Station not correct")
 	}
-	if metar.Day != 21 {
+	if metar.Day != testMetar.ExpectedDay {
 		t.Error("Day not correct")
 	}
-	if metar.Visibility != "10" {
+	if metar.Visibility != testMetar.ExpectedVisiblity {
 		t.Error("Visiblity not correct")
 	}
-	if metar.WindSpeed != 7 {
+	if metar.WindSpeed != testMetar.ExpectedWindSpeed {
 		t.Error("Wind speed not correct")
 	}
 	details := GetDetailMetar(metar)
@@ -26,7 +48,6 @@ func TestParseFullMetar(t *testing.T) {
 	if details == "" {
 		t.Error("Details failed to parse")
 	}
-	t.Log("OK")
 }
 
 func TestParseDayTime(t *testing.T) {

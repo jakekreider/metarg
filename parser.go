@@ -14,6 +14,14 @@ type MappableRegexp struct {
 	regexp.Regexp
 }
 
+type Metar struct {
+	Station, Phenomena, Visibility, WindDirection                             string
+	Clouds                                                                    []string
+	Time                                                                      time.Time
+	WindSpeed, WindGust, Temperature, Dewpoint, Pressure, WindDirectionDegree float32
+	Day                                                                       int32
+}
+
 // Returns a map of named groups to values from the given input string
 func (this *MappableRegexp) GetMap(input string) (result map[string]string) {
 	result = make(map[string]string)
