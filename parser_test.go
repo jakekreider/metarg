@@ -16,7 +16,7 @@ func init() {
 }
 
 func TestParseFullMetar(t *testing.T) {
-	testMetar := MetarTestScenario {
+	testMetarBasic := MetarTestScenario {
 		"KORD 210051Z 15007KT 10SM OVC060 05/01 A3010 RMK AO2 RAE02 SLP200 P0000 T00500011",
 		"KORD",
 		21,
@@ -24,7 +24,17 @@ func TestParseFullMetar(t *testing.T) {
 		7,
 	}
 
-	checkMetarScenario(t, testMetar)
+	checkMetarScenario(t, testMetarBasic)
+
+	testMetarWithAuto := MetarTestScenario {
+		"PANV 260236Z AUTO 04014G19KT 10SM OVC085 M11/M14 A2989 RMK AO1",
+		"PANV",
+		26,
+		"10",
+		14,
+	}
+
+	checkMetarScenario(t, testMetarWithAuto)
 }
 
 func checkMetarScenario(t *testing.T, testMetar MetarTestScenario){

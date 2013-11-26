@@ -35,10 +35,10 @@ func (this *MappableRegexp) GetMap(input string) (result map[string]string) {
 
 func ParseMetar(flatMetar string) (metar Metar, success bool) {
 	mappable := MappableRegexp{*(regexp.MustCompile(
-			`^(?P<station>\w{4})\s(?P<time>\w{7})\s(?P<wind>\w+)\s(?P<visibility>\w+)` +
+			`^(?P<station>\w{4})\s(?P<time>\w{7})\s(AUTO\s)?(?P<wind>\w+)\s(?P<visibility>\w+)` +
 			`\s+(?P<clouds>.*)\s(?P<tempdue>M?\d\d\/M?\d\d)\s(?P<pressure>A\d{4})\s.*`))}
 	matches := mappable.GetMap(flatMetar)
-	if len(matches) != 7 {
+	if len(matches) < 7 {
 		return metar, false
 	}
 	metar.Station = matches["station"]

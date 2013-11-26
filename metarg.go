@@ -84,34 +84,40 @@ func DecodeMetar(metarLine string) (details string, success bool) {
 
 //Retrieve the METAR for the given station
 //Returns the string and a status
-func GetMetar(station string) (value string, ok bool) {
-	station = strings.ToUpper(station)
-	resp, err := http.Get(METAR_PATH + station + ".TXT")
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return
-	}
-	metarLine := strings.Split(string(body), "\n")[1]
-	if decode {
-		decodedValue, ok := DecodeMetar(metarLine)
-		if !ok {
-			return value, ok
+func GetMetar(stations []string) (value string, ok bool) {
+	for _, station := range stations {
+		var stationMetar string
+		station = strings.ToUpper(station)
+		resp, err := http.Get(METAR_PATH + station + ".TXT")
+		if err != nil {
+			return
 		}
-		value = fmt.Sprintf("%s\n%s", metarLine, decodedValue)
-	} else {
-		value = metarLine
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return
+		}
+		metarLine := strings.Split(string(body), "\n")[1]
+		if decode {
+			decodedValue, ok := DecodeMetar(metarLine)
+			if !ok {
+				return value, ok
+			}
+			stationMetar = fmt.Sprintf("%s\n%s", metarLine, decodedValue)
+		} else {
+			stationMetar = metarLine
+		}
+
+		value += stationMetar + "\n"
 	}
+	
 	return value, true
 }
 
 func main() {
 	args, valid := ParseArgs(os.Args[1:])
 	if valid {
-		metar, success := GetMetar(args.Args()[0])
+		metar, success := GetMetar(args.Args())
 		if success {
 			fmt.Fprint(Output, metar, "\n")
 
