@@ -15,5 +15,6 @@ TODO
   
 *  Verbosity (`-v` flag)
 *  Phenonema
-*  Multiple METAR's at a time
+*  Better parsing of units
+*  Better parsing of conditions
 *  Refactor this mess

@@ -36,7 +36,7 @@ func (this *MappableRegexp) GetMap(input string) (result map[string]string) {
 func ParseMetar(flatMetar string) (metar Metar, success bool) {
 	mappable := MappableRegexp{*(regexp.MustCompile(
 			`^(?P<station>\w{4})\s(?P<time>\w{7})\s(AUTO\s)?(?P<wind>\w+)\s(?P<visibility>\w+)` +
-			`\s+(?P<clouds>.*)\s(?P<tempdue>M?\d\d\/M?\d\d)\s(?P<pressure>A\d{4})\s.*`))}
+			`\s+(?P<clouds>.*)\s(?P<tempdue>M?\d\d\/M?\d\d)\s(?P<pressure>A\d{4})\sRMK(?P<remarks>.*)`))}
 	matches := mappable.GetMap(flatMetar)
 	if len(matches) < 7 {
 		return metar, false
@@ -74,9 +74,17 @@ func ParseWind(windFlat string) (direction string, speed float32,
 
 // returns a string (for now at least) since values can be 1/2, etc.
 func ParseVisibility(visibilityFlat string) (metarVisibility string) {
-	regex := regexp.MustCompile(`(.+)SM`)
+	regex := regexp.MustCompile(`(.+)([SK]M)`)
 	match := regex.FindStringSubmatch(visibilityFlat)
 	metarVisibility = match[1]
+	unit := match[2]
+	switch unit {
+	case "SM":
+		unit = "miles"
+	case "KM":
+		unit = "kilometers"
+	}
+	metarVisibility += " "+unit
 	return
 }
 

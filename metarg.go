@@ -54,7 +54,7 @@ Time          : {{.Time.Format "15:04"}} UTC
 Wind direction: {{.WindDirectionDegree}} ({{.WindDirection}})
 Wind speed    : {{.WindSpeed}} KT
 Wind gust     : {{.WindGust}} KT
-Visibility    : {{.Visibility}} SM
+Visibility    : {{.Visibility}}
 Temperature   : {{.Temperature}} C
 Dewpoint      : {{.Dewpoint}} C
 Pressure      : {{.Pressure}} "Hg

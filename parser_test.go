@@ -20,7 +20,7 @@ func TestParseFullMetar(t *testing.T) {
 		"KORD 210051Z 15007KT 10SM OVC060 05/01 A3010 RMK AO2 RAE02 SLP200 P0000 T00500011",
 		"KORD",
 		21,
-		"10",
+		"10 miles",
 		7,
 	}
 
@@ -30,7 +30,7 @@ func TestParseFullMetar(t *testing.T) {
 		"PANV 260236Z AUTO 04014G19KT 10SM OVC085 M11/M14 A2989 RMK AO1",
 		"PANV",
 		26,
-		"10",
+		"10 miles",
 		14,
 	}
 
@@ -118,7 +118,7 @@ func TestParseVisibilityFraction(t *testing.T) {
 	const testVisibility = "1/2SM"
 	distance := ParseVisibility(testVisibility)
 	t.Logf("Received %v ", distance)
-	if distance != "1/2" {
+	if distance != "1/2 miles" {
 		t.Error("Visiblity not correct")
 	}
 	t.Log("OK")
