@@ -27,59 +27,18 @@ func init() {
 	Output = os.Stdout
 }
 
-//Parse command-line args
-func ParseArgs(arguments []string) (flag.FlagSet, bool) {
-	success := true
-	err := flagSet.Parse(arguments)
-	if err != nil || help {
-		flag.PrintDefaults()
-		success = false
-	}
-	if len(flagSet.Args()) == 0 {
-		fmt.Fprintln(Output, "Usage: metarg [options] station")
-		success = false
-	}
-	if verbose {
-		fmt.Fprintln(Output, "Shh, not implemented yet ...")
-		success = false
-	}
+//Command-line entry point
+func main() {
+	args, valid := ParseArgs(os.Args[1:])
+	if valid {
+		metar, success := GetMetar(args.Args())
+		if success {
+			fmt.Fprint(Output, metar, "\n")
 
-	return *flagSet, success
-}
-
-func GetDetailMetar(metar Metar) (details string) {
-	const stringTemplate = `Station       : {{.Station}}
-Day           : {{.Day}}
-Time          : {{.Time.Format "15:04"}} UTC
-Wind direction: {{.WindDirectionDegree}} ({{.WindDirection}})
-Wind speed    : {{.WindSpeed}} KT
-Wind gust     : {{.WindGust}} KT
-Visibility    : {{.Visibility}}
-Temperature   : {{.Temperature}} C
-Dewpoint      : {{.Dewpoint}} C
-Pressure      : {{.Pressure}} "Hg
-Clouds        : {{range .Clouds}}{{.}} ft {{end}}
-Phenomena     :  //TODO`
-	tmpl, err := template.New("metarDetail").Parse(stringTemplate)
-	if err != nil {
-		panic(err)
+		} else {
+			fmt.Fprint(Output, "Oh no, something went wrong!\n")
+		}
 	}
-	var doc bytes.Buffer
-	err = tmpl.Execute(&doc, metar)
-	if err != nil {
-		panic(err)
-	}
-	details = doc.String()
-	return
-}
-
-func DecodeMetar(metarLine string) (details string, success bool) {
-	metar, success := ParseMetar(metarLine)
-	if !success {
-		return details, success
-	}
-	details = GetDetailMetar(metar)
-	return
 }
 
 //Retrieve the METAR for the given station
@@ -114,15 +73,59 @@ func GetMetar(stations []string) (value string, ok bool) {
 	return value, true
 }
 
-func main() {
-	args, valid := ParseArgs(os.Args[1:])
-	if valid {
-		metar, success := GetMetar(args.Args())
-		if success {
-			fmt.Fprint(Output, metar, "\n")
-
-		} else {
-			fmt.Fprint(Output, "Oh no, something went wrong!\n")
-		}
+//Parse command-line args
+func ParseArgs(arguments []string) (flag.FlagSet, bool) {
+	success := true
+	err := flagSet.Parse(arguments)
+	if err != nil || help {
+		flag.PrintDefaults()
+		success = false
 	}
+	if len(flagSet.Args()) == 0 {
+		fmt.Fprintln(Output, "Usage: metarg [options] station")
+		success = false
+	}
+	if verbose {
+		fmt.Fprintln(Output, "Shh, not implemented yet ...")
+		success = false
+	}
+
+	return *flagSet, success
 }
+
+func GetDetailMetar(metar Metar) (details string) {
+	const stringTemplate = `Station       : {{.Station}}
+Day           : {{.Day}}
+Time          : {{.Time.Format "15:04"}} UTC
+Wind direction: {{.WindDirectionDegree}} ({{.WindDirection}})
+Wind speed    : {{.WindSpeed}} KT
+Wind gust     : {{.WindGust}} KT
+Visibility    : {{.Visibility}}
+Temperature   : {{.Temperature}} C
+Dewpoint      : {{.Dewpoint}} C
+Pressure      : {{.Pressure}} "Hg
+Clouds        : {{range .Clouds}}{{.}} ft {{end}}
+Remarks       : {{range .Remarks}}{{.}}
+{{end}}`
+	tmpl, err := template.New("metarDetail").Parse(stringTemplate)
+	if err != nil {
+		panic(err)
+	}
+	var doc bytes.Buffer
+	err = tmpl.Execute(&doc, metar)
+	if err != nil {
+		panic(err)
+	}
+	details = doc.String()
+	return
+}
+
+func DecodeMetar(metarLine string) (details string, success bool) {
+	metar, success := ParseMetar(metarLine)
+	if !success {
+		return details, success
+	}
+	details = GetDetailMetar(metar)
+	return
+}
+

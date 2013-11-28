@@ -62,7 +62,7 @@ func checkMetarScenario(t *testing.T, testMetar MetarTestScenario){
 
 func TestParseDayTime(t *testing.T) {
 	const testDateTime = "210051Z"
-	day, time := ParseDayTime(testDateTime)
+	day, time := parseDayTime(testDateTime)
 	t.Logf("Received %s, %v", day, time)
 	if day != 21 {
 		t.Error("day not correct")
@@ -78,7 +78,7 @@ func TestParseDayTime(t *testing.T) {
 
 func TestParseWind(t *testing.T) {
 	const testWind = "18055KT"
-	direction, wind, degrees, gust := ParseWind(testWind)
+	direction, wind, degrees, gust := parseWind(testWind)
 	t.Logf("Received %v, %v, %v, %v", direction, wind, degrees, gust)
 	if direction != "S" {
 		t.Error("Direction not correct")
@@ -97,7 +97,7 @@ func TestParseWind(t *testing.T) {
 
 func TestParseWindWithGust(t *testing.T) {
 	const testWindWithGust = "34014G21KT"
-	direction, wind, degrees, gust := ParseWind(testWindWithGust)
+	direction, wind, degrees, gust := parseWind(testWindWithGust)
 	t.Logf("Received %v, %v, %v, %v", direction, wind, degrees, gust)
 	if direction != "NNW" {
 		t.Error("Direction not correct")
@@ -116,7 +116,7 @@ func TestParseWindWithGust(t *testing.T) {
 
 func TestParseVisibilityFraction(t *testing.T) {
 	const testVisibility = "1/2SM"
-	distance := ParseVisibility(testVisibility)
+	distance := parseVisibility(testVisibility)
 	t.Logf("Received %v ", distance)
 	if distance != "1/2 miles" {
 		t.Error("Visiblity not correct")
@@ -126,7 +126,7 @@ func TestParseVisibilityFraction(t *testing.T) {
 
 func TestParseCloudsMultiple(t *testing.T) {
 	const testClouds = "FEW200 SCT250"
-	clouds := ParseClouds(testClouds)
+	clouds := parseClouds(testClouds)
 	t.Logf("Received %v ", clouds)
 	if len(clouds) != 2 {
 		t.Error("Received wrong count of clouds")
@@ -136,7 +136,7 @@ func TestParseCloudsMultiple(t *testing.T) {
 
 func TestParseCloudItem(t *testing.T) {
 	const testCloud = "FEW200"
-	cloud := ParseCloudDescription(testCloud)
+	cloud := parseCloudDescription(testCloud)
 	t.Logf("Received %v ", cloud)
 	if cloud != "FEW at 20000" {
 		t.Error("Received wrong cloud value")
@@ -146,7 +146,7 @@ func TestParseCloudItem(t *testing.T) {
 
 func TestParseTempDew(t *testing.T) {
 	const testTemp = "05/M01"
-	temperature, dewPoint := ParseTempDew(testTemp)
+	temperature, dewPoint := parseTempDew(testTemp)
 	t.Logf("Received %v, %v", temperature, dewPoint)
 	if temperature != 5.0 {
 		t.Error("Received wrong temperature")
@@ -160,7 +160,7 @@ func TestParseTempDew(t *testing.T) {
 
 func TestParsePressure(t *testing.T) {
 	const testPressure = "A3006"
-	pressure := ParsePressure(testPressure)
+	pressure := parsePressure(testPressure)
 	t.Logf("Received %v", pressure)
 	if pressure != 30.06 {
 		t.Error("Received wrong pressure")
