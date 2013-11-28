@@ -5,9 +5,9 @@ import (
 )
 
 type MetarTestScenario struct {
-	RawValue string
-	ExpectedStation string
-	ExpectedDay int32
+	RawValue          string
+	ExpectedStation   string
+	ExpectedDay       int32
 	ExpectedVisiblity string
 	ExpectedWindSpeed float32
 }
@@ -16,7 +16,7 @@ func init() {
 }
 
 func TestParseFullMetar(t *testing.T) {
-	testMetarBasic := MetarTestScenario {
+	testMetarBasic := MetarTestScenario{
 		"KORD 210051Z 15007KT 10SM OVC060 05/01 A3010 RMK AO2 RAE02 SLP200 P0000 T00500011",
 		"KORD",
 		21,
@@ -26,7 +26,7 @@ func TestParseFullMetar(t *testing.T) {
 
 	checkMetarScenario(t, testMetarBasic)
 
-	testMetarWithAuto := MetarTestScenario {
+	testMetarWithAuto := MetarTestScenario{
 		"PANV 260236Z AUTO 04014G19KT 10SM OVC085 M11/M14 A2989 RMK AO1",
 		"PANV",
 		26,
@@ -37,7 +37,7 @@ func TestParseFullMetar(t *testing.T) {
 	checkMetarScenario(t, testMetarWithAuto)
 }
 
-func checkMetarScenario(t *testing.T, testMetar MetarTestScenario){
+func checkMetarScenario(t *testing.T, testMetar MetarTestScenario) {
 	metar, _ := ParseMetar(testMetar.RawValue)
 
 	t.Logf("Evaluating %+v ", metar)

@@ -69,7 +69,7 @@ func GetMetar(stations []string) (value string, ok bool) {
 
 		value += stationMetar + "\n"
 	}
-	
+
 	return value, true
 }
 
@@ -105,7 +105,8 @@ Temperature   : {{.Temperature}} C
 Dewpoint      : {{.Dewpoint}} C
 Pressure      : {{.Pressure}} "Hg
 Clouds        : {{range .Clouds}}{{.}} ft {{end}}
-Remarks       : {{range .Remarks}}{{.}}
+Remarks       : 
+{{range .Remarks}}{{.}}
 {{end}}`
 	tmpl, err := template.New("metarDetail").Parse(stringTemplate)
 	if err != nil {
@@ -128,4 +129,3 @@ func DecodeMetar(metarLine string) (details string, success bool) {
 	details = GetDetailMetar(metar)
 	return
 }
-

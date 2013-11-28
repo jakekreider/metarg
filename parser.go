@@ -35,7 +35,7 @@ func (this *MappableRegexp) GetMap(input string) (result map[string]string) {
 
 func ParseMetar(flatMetar string) (metar Metar, success bool) {
 	mappable := MappableRegexp{*(regexp.MustCompile(
-			`^(?P<station>\w{4})\s(?P<time>\w{7})\s(AUTO\s)?(?P<wind>\w+)\s(?P<visibility>\w+)` +
+		`^(?P<station>\w{4})\s(?P<time>\w{7})\s(AUTO\s)?(?P<wind>\w+)\s(?P<visibility>\w+)` +
 			`\s+(?P<clouds>.*)\s(?P<tempdue>M?\d\d\/M?\d\d)\s(?P<pressure>A\d{4})\sRMK(?P<remarks>.*)`))}
 	matches := mappable.GetMap(flatMetar)
 	if len(matches) < 7 {
@@ -53,7 +53,6 @@ func ParseMetar(flatMetar string) (metar Metar, success bool) {
 	metar.Remarks = parseRemarks(matches["remarks"])
 	return metar, true
 }
-
 
 func parseWind(windFlat string) (direction string, speed float32,
 	dirDegrees float32, gust float32) {
@@ -85,7 +84,7 @@ func parseVisibility(visibilityFlat string) (metarVisibility string) {
 	case "KM":
 		unit = "kilometers"
 	}
-	metarVisibility += " "+unit
+	metarVisibility += " " + unit
 	return
 }
 
@@ -145,8 +144,11 @@ func parsePressure(pressureFlat string) (pressure float32) {
 	return
 }
 
-func parseRemarks(remarksFlat string) (remarks []string) {
+func parseRemarks(remarksFlat string) (translations []string) {
 	regex := regexp.MustCompile(`\S{2,}`)
-	remarks = regex.FindAllString(remarksFlat, -1)
+	remarks := regex.FindAllString(remarksFlat, -1)
+	for _, remark := range remarks {
+		translations = append(translations, parseRemark(remark))
+	}
 	return
 }
