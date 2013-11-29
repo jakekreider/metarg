@@ -15,6 +15,7 @@ func TestParseRemarks(t *testing.T) {
         RemarkTestCase{"AO1", "AMOS station"},
         RemarkTestCase{"AO2", "ASOS station"},
         RemarkTestCase{"SLP123", "Sea level pressure 12.3 mb"},
+        RemarkTestCase{"WEA:something", "something"},
     }
     for _, testCase := range testCases {
         result := parseRemark(testCase.RemarkValue)
