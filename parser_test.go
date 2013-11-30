@@ -35,6 +35,16 @@ func TestParseFullMetar(t *testing.T) {
 	}
 
 	checkMetarScenario(t, testMetarWithAuto)
+
+	testMetarWithSomething := MetarTestScenario{
+		"KPWK 300251Z 16009KT 10SM FEW150 BKN200 OVC250 00/M07 A3043 RMK AO2 SLP312 T00001067 58019",
+		"KPWK",
+		30,
+		"10 miles",
+		9,
+	}
+
+	checkMetarScenario(t, testMetarWithSomething)
 }
 
 func checkMetarScenario(t *testing.T, testMetar MetarTestScenario) {
