@@ -36,7 +36,7 @@ func TestParseFullMetar(t *testing.T) {
 
 	checkMetarScenario(t, testMetarWithAuto)
 
-	testMetarWithSomething := MetarTestScenario{
+	testMetarWithMultipleClouds := MetarTestScenario{
 		"KPWK 300251Z 16009KT 10SM FEW150 BKN200 OVC250 00/M07 A3043 RMK AO2 SLP312 T00001067 58019",
 		"KPWK",
 		30,
@@ -44,7 +44,17 @@ func TestParseFullMetar(t *testing.T) {
 		9,
 	}
 
-	checkMetarScenario(t, testMetarWithSomething)
+	checkMetarScenario(t, testMetarWithMultipleClouds)
+
+	testMetarWithClear := MetarTestScenario{
+		"KPWK 300252Z 15007KT 10SM CLR 00/M07 A3045 RMK AO2 SLP318 T00001067 58020",
+		"KPWK",
+		30,
+		"10 miles",
+		7,
+	}
+
+	checkMetarScenario(t, testMetarWithClear)
 }
 
 func checkMetarScenario(t *testing.T, testMetar MetarTestScenario) {

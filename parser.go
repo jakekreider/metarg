@@ -36,7 +36,7 @@ func (this *MappableRegexp) GetMap(input string) (result map[string]string) {
 func ParseMetar(flatMetar string) (metar Metar, success bool) {
 	mappable := MappableRegexp{*(regexp.MustCompile(
 		`^(?P<station>\w{4})\s(?P<time>\w{7})\s(?P<auto>AUTO\s)?(?P<wind>\w+)\s(?P<weather>\w+\s)?(?P<visibility>\S+[SK]M)` +
-			`\s(?P<clouds>(\D\D\D\d\d\d\s?)+)\s(?P<tempdue>M?\d\d\/M?\d\d)\s(?P<pressure>A\d{4})\sRMK(?P<remarks>.*)`))}
+			`\s(?P<clouds>(\D\D\D\d?\d?\d?\s?)+)\s(?P<tempdue>M?\d\d\/M?\d\d)\s(?P<pressure>A\d{4})\sRMK(?P<remarks>.*)`))}
 	matches := mappable.GetMap(flatMetar)
 	if len(matches) < 7 {
 		return metar, false
@@ -46,7 +46,6 @@ func ParseMetar(flatMetar string) (metar Metar, success bool) {
 
 	metar.WindDirection, metar.WindSpeed,
 		metar.WindDirectionDegree, metar.WindGust = parseWind(matches["wind"])
-	fmt.Printf("GOT MATCHES %v \n", matches)
 	metar.Visibility = parseVisibility(matches["visibility"])
 	metar.Clouds = parseClouds(matches["clouds"])
 	metar.Temperature, metar.Dewpoint = parseTempDew(matches["tempdue"])
