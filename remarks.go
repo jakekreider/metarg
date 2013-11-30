@@ -15,8 +15,9 @@ func parseRemark(remark string) (translation string) {
             `SLP\d\d\d`:parseSeaLevelPressure,
             `WEA\:something`:parseWeatherAddl,
             `PRES[FR]R`:parsePressureChange,
-            `1\d\d\d\d`:parseMax6HrTemp,
-            `2\d\d\d\d`:parseMin6HrTemp,
+            `1\d{4}`:parseMax6HrTemp,
+            `2\d{4}`:parseMin6HrTemp,
+            `4\/\d{3}`:parseSnowCoverage,
     }
     for rgx, evaluator := range remarkMap {
         expression := regexp.MustCompile(rgx)
@@ -82,4 +83,13 @@ func parseRemarkSignedValue(value string) (floatValue float64) {
         floatValue = .1 * floatValue
     }
     return
+}
+
+func parseSnowCoverage(remark string) (translation string){
+    var floatValue float64
+    expression := regexp.MustCompile(`4\/(\d{3})`)
+    matches := expression.FindStringSubmatch(remark)
+    floatValue, _ = strconv.ParseFloat(matches[1], 32)
+    translation = fmt.Sprintf("Snow coverage:  %4.1f\"", floatValue)
+    return 
 }
