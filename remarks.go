@@ -18,6 +18,8 @@ func parseRemark(remark string) (translation string) {
             `1\d{4}`:parseMax6HrTemp,
             `2\d{4}`:parseMin6HrTemp,
             `4\/\d{3}`:parseSnowCoverage,
+            `6\d{4}`:parse6HourPrecipitation,
+            `7\d{4}`:parse24HourPrecipitation,
     }
     for rgx, evaluator := range remarkMap {
         expression := regexp.MustCompile(rgx)
@@ -62,7 +64,7 @@ func parseMax6HrTemp(remark string) (translation string){
     expression := regexp.MustCompile(`1(\d{4})`)
     matches := expression.FindStringSubmatch(remark)
     floatValue = parseRemarkSignedValue(matches[1])
-    translation = fmt.Sprintf("Max temp in 6 hrs:  %4.1f", floatValue)
+    translation = fmt.Sprintf("Max temp in 6 hrs:  %4.1f °C", floatValue)
     return 
 }
 
@@ -71,7 +73,7 @@ func parseMin6HrTemp(remark string) (translation string){
     expression := regexp.MustCompile(`2(\d{4})`)
     matches := expression.FindStringSubmatch(remark)
     floatValue = parseRemarkSignedValue(matches[1])
-    translation = fmt.Sprintf("Min temp in 6 hrs:  %4.1f", floatValue)
+    translation = fmt.Sprintf("Min temp in 6 hrs:  %4.1f °C", floatValue)
     return 
 }
 
@@ -91,5 +93,19 @@ func parseSnowCoverage(remark string) (translation string){
     matches := expression.FindStringSubmatch(remark)
     floatValue, _ = strconv.ParseFloat(matches[1], 32)
     translation = fmt.Sprintf("Snow coverage:  %4.1f\"", floatValue)
+    return 
+}
+
+func parse6HourPrecipitation(remark string) (translation string){
+    var floatValue float64
+    floatValue, _ = strconv.ParseFloat(remark[1:], 32)
+    translation = fmt.Sprintf("6-hour precipitation: %4.1f\"", floatValue/100)
+    return 
+}
+
+func parse24HourPrecipitation(remark string) (translation string){
+    var floatValue float64
+    floatValue, _ = strconv.ParseFloat(remark[1:], 32)
+    translation = fmt.Sprintf("24-hour precipitation: %4.1f\"", floatValue/100)
     return 
 }
