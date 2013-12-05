@@ -11,15 +11,16 @@ import (
 func parseRemark(remark string) (translation string) {
 
     remarkMap := map[string]func(flatValue string) string{
-            `AO[1,2]`:parseStationType,
-            `SLP\d\d\d`:parseSeaLevelPressure,
-            `WEA\:something`:parseWeatherAddl,
-            `PRES[FR]R`:parsePressureChange,
-            `1\d{4}`:parseMax6HrTemp,
-            `2\d{4}`:parseMin6HrTemp,
-            `4\/\d{3}`:parseSnowCoverage,
-            `6\d{4}`:parse6HourPrecipitation,
-            `7\d{4}`:parse24HourPrecipitation,
+            `^AO[1,2]$`:parseStationType,
+            `^SLP\d\d\d$`:parseSeaLevelPressure,
+            `^WEA\:something$`:parseWeatherAddl,
+            `^PRES[FR]R$`:parsePressureChange,
+            `^1\d{4}$`:parseMax6HrTemp,
+            `^2\d{4}$`:parseMin6HrTemp,
+            `^4\/\d{3}$`:parseSnowCoverage,
+            `^6\d{4}$`:parse6HourPrecipitation,
+            `^7\d{4}$`:parse24HourPrecipitation,
+            `^8/[lmh]$`:parseCloudType,
     }
     for rgx, evaluator := range remarkMap {
         expression := regexp.MustCompile(rgx)
@@ -109,3 +110,21 @@ func parse24HourPrecipitation(remark string) (translation string){
     translation = fmt.Sprintf("24-hour precipitation: %4.1f\"", floatValue/100)
     return 
 }
+
+func parseCloudType(remark string) (translation string){
+    var cloudType string
+    var code = remark[len(remark)-1:]
+    switch code {
+        case "l" : cloudType = "Low"
+        case "m" : cloudType = "Medium"
+        case "h" : cloudType = "High"
+        default: return
+    }
+
+    translation = fmt.Sprintf("Clouds:  %s", cloudType)
+
+    return 
+}
+
+
+
