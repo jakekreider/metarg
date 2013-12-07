@@ -22,6 +22,7 @@ func TestParseRemarks(t *testing.T) {
         RemarkTestCase{"20221", "Min temp in 6 hrs:  22.1 °C"},
         RemarkTestCase{"21221", "Min temp in 6 hrs:  -22.1 °C"},
         RemarkTestCase{"4/012", "Snow coverage:  12.0\""},
+        RemarkTestCase{"51021", "Pressure tendency:  -2.1 mb"},
         RemarkTestCase{"60100", "6-hour precipitation:  1.0\""},
         RemarkTestCase{"70510", "24-hour precipitation:  5.1\""},
         RemarkTestCase{"8/l", "Clouds:  Low"},

@@ -18,6 +18,7 @@ func parseRemark(remark string) (translation string) {
             `^1\d{4}$`:parseMax6HrTemp,
             `^2\d{4}$`:parseMin6HrTemp,
             `^4\/\d{3}$`:parseSnowCoverage,
+            `^5[01]\d{3}$`:parsePressureTendency,
             `^6\d{4}$`:parse6HourPrecipitation,
             `^7\d{4}$`:parse24HourPrecipitation,
             `^8/[lmh]$`:parseCloudType,
@@ -124,6 +125,22 @@ func parseCloudType(remark string) (translation string){
     translation = fmt.Sprintf("Clouds:  %s", cloudType)
 
     return 
+}
+
+func parsePressureTendency(remark string) (translation string){
+    pressure := parseOneSignedFloat(remark[1:]) * .1
+
+    translation = fmt.Sprintf("Pressure tendency:  %4.1f mb", pressure)
+
+    return 
+}
+    
+func parseOneSignedFloat(signedInteger string) (value float64){
+    value, _ = strconv.ParseFloat(signedInteger[1:], 64)
+    if signedInteger[0:1] == "1" {
+        return -value
+    }
+    return value
 }
 
 
