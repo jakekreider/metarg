@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"text/template"
 )
@@ -15,14 +16,16 @@ import (
 var Output io.Writer
 
 const METAR_PATH = "http://weather.noaa.gov/pub/data/observations/metar/stations/"
+const METAR_LIST_REF = "http://www.cnrfc.noaa.gov/metar.php"
 
-var decode, verbose, help bool
+var decode, verbose, search, help bool
 var flagSet *flag.FlagSet
 
 func init() {
 	flagSet = new(flag.FlagSet)
 	flagSet.BoolVar(&decode, "d", false, "Decode")
 	flagSet.BoolVar(&verbose, "v", false, "Be verbose")
+	flagSet.BoolVar(&search, "s", false, "Search")
 	flagSet.BoolVar(&help, "h", false, "Help")
 	Output = os.Stdout
 }
@@ -31,9 +34,17 @@ func init() {
 func main() {
 	args, valid := ParseArgs(os.Args[1:])
 	if valid {
-		metar, success := GetMetar(args.Args())
+		var result string
+		var success bool
+		if search {
+			var resultList []string
+			resultList, success = SearchStations(args.Args()[0])
+			result = strings.Join(resultList, "\n")
+		}else {
+			result, success = GetMetar(args.Args())	
+		}
 		if success {
-			fmt.Fprint(Output, metar, "\n")
+			fmt.Fprint(Output, result, "\n")
 
 		} else {
 			fmt.Fprint(Output, "Oh no, something went wrong!\n")
@@ -91,6 +102,40 @@ func ParseArgs(arguments []string) (flag.FlagSet, bool) {
 	}
 
 	return *flagSet, success
+}
+
+func SearchStations(search string) (results []string, success bool) {
+	fmt.Fprint(Output, "Searching\n")
+	resp, err := http.Get(METAR_LIST_REF)
+	fmt.Fprint(Output, "Got result\n")
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	fmt.Fprint(Output, "Reading\n")
+	byteBody, err := ioutil.ReadAll(resp.Body)
+	fmt.Fprint(Output, "Read\n")
+	if err != nil {
+		fmt.Fprint(Output, "ERROR1\n")
+		return
+	}
+	body := string(byteBody)
+	body = strings.Replace(body, "\n", "", -1)
+	stationSearch := regexp.MustCompile(`<tr.*><td.*>(?P<state>\w{2})</td>` +
+				`<td.*>(?P<name>.*)</td><td.*><a.*\n?.*>(?P<code>\w+)\n?</a></td></tr>`)
+	matches := stationSearch.FindAllStringSubmatch(body, -1)
+	success = true
+	fmt.Fprint(Output, "MATCHES", len(matches))
+	for _, match := range matches {
+		_, name, _ := match[0], match[1], match[2]
+		fmt.Fprint(Output, name)
+		if strings.Contains(name, search) {
+			fmt.Fprint(Output, "GOT IT")
+			results = append(results, strings.Join(match, " - "))
+		}
+
+	}
+	return results, success
 }
 
 func GetDetailMetar(metar Metar) (details string) {
