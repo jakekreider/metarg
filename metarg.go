@@ -105,33 +105,27 @@ func ParseArgs(arguments []string) (flag.FlagSet, bool) {
 }
 
 func SearchStations(search string) (results []string, success bool) {
-	fmt.Fprint(Output, "Searching\n")
+	search = strings.ToUpper(search)
 	resp, err := http.Get(METAR_LIST_REF)
-	fmt.Fprint(Output, "Got result\n")
 	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
-	fmt.Fprint(Output, "Reading\n")
 	byteBody, err := ioutil.ReadAll(resp.Body)
-	fmt.Fprint(Output, "Read\n")
 	if err != nil {
-		fmt.Fprint(Output, "ERROR1\n")
+		fmt.Fprint(Output, "ERROR ", err)
 		return
 	}
 	body := string(byteBody)
 	body = strings.Replace(body, "\n", "", -1)
-	stationSearch := regexp.MustCompile(`<tr.*><td.*>(?P<state>\w{2})</td>` +
-				`<td.*>(?P<name>.*)</td><td.*><a.*\n?.*>(?P<code>\w+)\n?</a></td></tr>`)
+	stationSearch := regexp.MustCompile(`<tr><td.*?>(?P<state>\w{2})</td>` +
+				`<td.*?>(?P<name>.*?)</td><td.*?><a.*?>(?P<code>\w+)`)
 	matches := stationSearch.FindAllStringSubmatch(body, -1)
 	success = true
-	fmt.Fprint(Output, "MATCHES", len(matches))
 	for _, match := range matches {
-		_, name, _ := match[0], match[1], match[2]
-		fmt.Fprint(Output, name)
-		if strings.Contains(name, search) {
-			fmt.Fprint(Output, "GOT IT")
-			results = append(results, strings.Join(match, " - "))
+		_, state, name, _ := match[0], match[1], match[2], match[3]
+		if strings.Contains(name, search) || strings.Contains(state, search) {
+			results = append(results, strings.Join(match[1:], " - "))
 		}
 
 	}

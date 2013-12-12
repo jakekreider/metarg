@@ -8,6 +8,9 @@ Intended usage:
 `metarg -d KORD`  
 *KORD being the airport code for Chicago O'Hare, where the weather always sucks*  
 
+Search for additional stations with
+`metarg -s chicago`  
+
 Will add more features as time and enthusiasm dictate.
 
 TODO
