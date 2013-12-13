@@ -22,6 +22,7 @@ func parseRemark(remark string) (translation string) {
             `^6\d{4}$`:parse6HourPrecipitation,
             `^7\d{4}$`:parse24HourPrecipitation,
             `^8/[lmh]$`:parseCloudType,
+            `^933\d{3}$`:parseSnowWaterEq,
     }
     for rgx, evaluator := range remarkMap {
         expression := regexp.MustCompile(rgx)
@@ -132,6 +133,13 @@ func parsePressureTendency(remark string) (translation string){
 
     translation = fmt.Sprintf("Pressure tendency:  %4.1f mb", pressure)
 
+    return 
+}
+
+func parseSnowWaterEq(remark string) (translation string){
+    var floatValue float64
+    floatValue, _ = strconv.ParseFloat(remark[3:], 32)
+    translation = fmt.Sprintf("New snow coverage (water eq.): %3.0f\"", floatValue)
     return 
 }
     
