@@ -40,8 +40,8 @@ func main() {
 			var resultList []string
 			resultList, success = SearchStations(args.Args()[0])
 			result = strings.Join(resultList, "\n")
-		}else {
-			result, success = GetMetar(args.Args())	
+		} else {
+			result, success = GetMetar(args.Args())
 		}
 		if success {
 			fmt.Fprint(Output, result, "\n")
@@ -119,7 +119,7 @@ func SearchStations(search string) (results []string, success bool) {
 	body := string(byteBody)
 	body = strings.Replace(body, "\n", "", -1)
 	stationSearch := regexp.MustCompile(`<tr><td.*?>(?P<state>\w{2})</td>` +
-				`<td.*?>(?P<name>.*?)</td><td.*?><a.*?>(?P<code>\w+)`)
+		`<td.*?>(?P<name>.*?)</td><td.*?><a.*?>(?P<code>\w+)`)
 	matches := stationSearch.FindAllStringSubmatch(body, -1)
 	success = true
 	for _, match := range matches {
